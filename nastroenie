@@ -1,0 +1,23 @@
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+
+
+tokenizer = AutoTokenizer.from_pretrained('nlptown/bert-base-multilingual-uncased-sentiment')
+model = AutoModelForSequenceClassification.from_pretrained('nlptown/bert-base-multilingual-uncased-sentiment')
+
+current_comment = ''
+correlation = [[0, 1, 2, 3, 4],[0, 0, 0, 0, 0]]
+
+for i in range(1):
+    for j in range(5):
+        current_comment = data['comments'][i][j]['text']
+
+        tokens = tokenizer.encode(current_comment, return_tensors='pt')
+        result = model(tokens)
+
+        correlation[1][j] = int(torch.argmax(result.logits))
+
+        data['comments'][i][j]['score'] = correlation[i][j]
+
+for i in range(0, 5):
+    print(data['comments'][1][i]['score'])
