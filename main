@@ -8,7 +8,7 @@ import torch
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from profanity_filter import ProfanityFilter
+from better_profanity import profanity
 
 def clearning(data):
     for comments in data['comments']:
@@ -81,13 +81,14 @@ def mood_of_the_text(sentence):
 
 def dirt_tongue(sentence):
     word_counter = sentence.split()
+    dirt_score = 0
     for k in range(len(word_counter)):
         current_word = word_counter[k]
 
-        if not (pf.is_clean(current_word)):
-            dirt_score = 0
-        else:
+        if (profanity.censor(current_word)[0]=='*'):
             dirt_score = 1
+        else:
+            dirt_score = 0
 
     return dirt_score
 
@@ -107,11 +108,10 @@ extractor = yake.KeywordExtractor(lan = "en",     # язык
 
 tokenizer = AutoTokenizer.from_pretrained('nlptown/bert-base-multilingual-uncased-sentiment')
 model = AutoModelForSequenceClassification.from_pretrained('nlptown/bert-base-multilingual-uncased-sentiment')
-#pf = ProfanityFilter()
 
 all_count_of_key_words, all_count_of_adjectives, all_count_of_adverbs, all_count_of_nouns = [], [], [], []
 all_count_of_verbs, all_count_of_numerals, all_count_of_question_marks, all_count_of_exclamation_marks = [], [], [], []
-all_mood_of_text = []
+all_mood_of_text, all_pohozhest, all_dirt_words = [], [], []
 
 for i in tqdm(range(0, len(data))):
     post = data.iloc[i]
@@ -134,18 +134,18 @@ for i in tqdm(range(0, len(data))):
     count_of_question_marks = []
     count_of_exclamation_marks = []
     mood_of_text = []
-    all_dirt_words = []
+    dirt_words = []
 
     for text in texts_to_compare:
         scores.append(similarity(post['text'], text))   # похожесть коммента на текст поста
 
         count_key_words = 0
-        dirt_words = []
+        dirt_word = []
 
         for word in text:       # проверка на ключевые слова
             for key_word in key_wrds:
                 if similarity(word, key_word) > 0.3:        # параметр схожести (поиграться)
-                    count_key_words += 1
+                    count_key_words = 1
         count_of_key_words.append(count_key_words)
 
         parts_of_speech = tagging_words_from_sentence(text)         # количество различных частей речи в тексте
@@ -160,8 +160,9 @@ for i in tqdm(range(0, len(data))):
         count_of_exclamation_marks.append(punctuation_marks['exclamation_marks_count'])
 
         mood_of_text.append(mood_of_the_text(text))
+        dirt_word.append(dirt_tongue(text))
 
-        #dirt_words.append(dirt_tongue(text))
+    all_pohozhest.append(scores)
 
     all_count_of_key_words.append(count_of_key_words)
 
@@ -178,8 +179,23 @@ for i in tqdm(range(0, len(data))):
 
     all_dirt_words.append(dirt_words)
 
-print(type(data))
+data['pohozhest'] = all_pohozhest
+data['key_words'] = all_count_of_key_words
+data['adjectives'] = all_count_of_adjectives
+data['adverbs'] = all_count_of_adverbs
+data['nouns'] = all_count_of_nouns
+data['verbs'] = all_count_of_verbs
+data['numerals'] = all_count_of_numerals
+data['question_marks'] = all_count_of_question_marks
+data['exclamation_marks'] = all_count_of_exclamation_marks
+data['mood'] = all_mood_of_text
+data['dirt_words'] = all_dirt_words
 
+all_targets = []
+for x in range(len(data['comments'])):
+    targets = []
+    for y in range(5):
+        targets.append(data['comments'][x][y]['score'])
+    all_targets.append(targets)
 
-
-#print(data['comments'][0][0]['score'])
+print(all_targets)
