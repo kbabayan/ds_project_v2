@@ -402,14 +402,14 @@ df = df.to_json()
 with open('D:\dataset.json', 'w') as f:
     json.dump(df, f)
 
-base_estimator = DecisionTreeRegressor(max_depth=1, splitter='best', min_samples_split=2)
-model = AdaBoostRegressor(base_estimator=base_estimator, n_estimators=100)
-model.fit(Xtrain_num, ytrain)
-params = {'n_estimators': 100,
-          'max_depth': 5,
-          'min_samples_split': 5,
-          'learning_rate': 0.1,
-          'loss': 'squared_error'}
-gbc = GradientBoostingRegressor(**params)
-gbc.fit(Xtrain_num,ytrain)
-gbc.feature_importances_
+#base_estimator = DecisionTreeRegressor(max_depth=1, splitter='best', min_samples_split=2)
+#model = AdaBoostRegressor(base_estimator=base_estimator, n_estimators=100)
+#model.fit(Xtrain_num, ytrain)
+#params = {'n_estimators': 100,
+#          'max_depth': 5,
+#          'min_samples_split': 5,
+#          'learning_rate': 0.1,
+#          'loss': 'squared_error'}
+#gbc = GradientBoostingRegressor(**params)
+#gbc.fit(Xtrain_num,ytrain)
+#gbc.feature_importances_
